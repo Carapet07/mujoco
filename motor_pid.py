@@ -22,15 +22,17 @@ Kd = 1.0 # derviative gain
 # t - time in seconds since the simulation loop started
 def desired_trajectory(t: float):
     """ 
-        produces the desired join positions
+        produces the desired joint positions
         sine and cos move between -1 and 1, amplitude of 0.5 shrinks that range 
         down to -0.5 to 0.5
-
     """ 
     amplitude = 0.5
-    joint1_desired = 0.5*amplitude * np.sin(1*np.pi*t) # sinusoidal trajectorty, w = pi
-    joint2_desired = 0.5*amplitude * np.cos(1*np.pi*t)
-    return joint1_desired, joint2_desired
+
+
+    joint1_desired = amplitude * np.sin(1*np.pi*t) # sinusoidal trajectorty, w = pi
+    joint2_desired = amplitude * np.cos(1*np.pi*t)
+    joint3_desired = amplitude * np.sin(2*np.pi*t)
+    return joint1_desired, joint2_desired, joint3_desired
 
 
 def pid_control(target, current, prev_error, integral, dt):
@@ -50,27 +52,29 @@ def pid_control(target, current, prev_error, integral, dt):
 # Launch the simulation 
 with mujoco.viewer.launch_passive(model, data) as viewer:
     start_time = time.time()
-    prev_error = [0, 0]
-    integral = [0, 0]
+    prev_error = [0, 0, 0]
+    integral = [0, 0, 0]
 
 
     trajectory1 = []
     trajectory2 = []
+    trajectory3 = []
     signals1 = []
     signals2 = []
+    signals3 = []
     while viewer.is_running():
         current_time = time.time() - start_time
         dt = model.opt.timestep
 
 
         # get joint possitions
-        cur_pos = [data.qpos[0], data.qpos[1]] # 2 jonits
+        cur_pos = data.qpos[:3].copy() # 3 jonits
         target_pos = desired_trajectory(current_time)
 
 
         # Compute control signals
         control_signals = []
-        for i in range(2):
+        for i in range(3):
             control_signal, prev_error[i], integral[i] = pid_control(target_pos[i], cur_pos[i], prev_error[i], integral[i], dt)
             control_signals.append(control_signal)
 
@@ -78,8 +82,10 @@ with mujoco.viewer.launch_passive(model, data) as viewer:
         # log data
         trajectory1.append(target_pos[0])
         trajectory2.append(target_pos[1])
+        trajectory3.append(target_pos[2])
         signals1.append(control_signals[0])
         signals2.append(control_signals[1])
+        signals3.append(control_signals[2])
         x = np.linspace(0, 10, 500)
 
         # CHANGE TO True TO TRIGGER LOGGING
@@ -92,9 +98,8 @@ with mujoco.viewer.launch_passive(model, data) as viewer:
             plt.show()
 
         # Apply control signals
-        data.ctrl[0] = control_signals[0]  # First actuator controls first joint
-        data.ctrl[1] = control_signals[1]  # Second actuator controls second joint
-        
+        data.ctrl[:] = control_signals  
+
         # Step simulation
         mujoco.mj_step(model, data)
         

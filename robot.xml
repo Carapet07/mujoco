@@ -1,4 +1,4 @@
-<mujoco model="2R_robotic_arm">
+<mujoco model="3R_robotic_arm">
     <compiler angle="radian" coordinate="local" />
     <option timestep="0.01" gravity="0 0 -9.81" />
     
@@ -16,15 +16,52 @@
                 <body name="link2" pos="0.3 0 0">
                     <joint name="joint2" type="hinge" axis="0 0 1" range="-180 180" />
                     <geom type="capsule" fromto="0 0 0 0.3 0 0" size="0.03" rgba="0.2 0.7 0.2 1" />
+                   
+                    <!-- Thrid link -->
+                    <body name="hand" pos="0.3 0 0">
+                        <joint name="wrist" type="hinge" axis="0 0 1"
+                            limited="true" range="-1.5708 1.5708" />
+
+                        <!-- Palm: 10 cm long, 8 cm wide, 2 cm thick -->
+                        <!-- Box size values are HALF dimensions -->
+                        <geom name="palm" type="box"
+                            pos="0.05 0 0" size="0.05 0.04 0.01"
+                            mass="0.15" rgba="0.8 0.6 0.4 1" />
+
+                        <!-- Four fingers extend along the local X direction -->
+                        <geom name="index_finger" type="capsule"
+                            fromto="0.10 -0.027 0  0.175 -0.027 0"
+                            size="0.008" mass="0.025" rgba="0.9 0.7 0.5 1" />
+
+                        <geom name="middle_finger" type="capsule"
+                            fromto="0.10 -0.009 0  0.185 -0.009 0"
+                            size="0.008" mass="0.03" rgba="0.9 0.7 0.5 1" />
+
+                        <geom name="ring_finger" type="capsule"
+                            fromto="0.10 0.009 0  0.175 0.009 0"
+                            size="0.008" mass="0.025" rgba="0.9 0.7 0.5 1" />
+
+                        <geom name="little_finger" type="capsule"
+                            fromto="0.10 0.027 0  0.155 0.027 0"
+                            size="0.007" mass="0.02" rgba="0.9 0.7 0.5 1" />
+
+                        <!-- Thumb points diagonally out from the palm -->
+                        <geom name="thumb" type="capsule"
+                            fromto="0.035 -0.04 0  0.08 -0.085 0"
+                            size="0.01" mass="0.03" rgba="0.9 0.7 0.5 1" />
+                    
+                        </body>
+                    </body>
                 </body>
             </body>
-        </body>
-    </worldbody>
-    
-    <actuator>
-	    <position joint="joint1" ctrlrange="0 6.28" kp="5.0" />
-      <position joint="joint2" ctrlrange="0 6.28" kp="5.0" />
-	    <!-- <motor joint="joint1" ctrlrange="-50 50" />
-	    <motor joint="joint2" ctrlrange="-50 50" />  -->
-    </actuator>
-</mujoco>
+        </worldbody>
+            
+        <actuator>
+            <!-- <position joint="joint1" ctrlrange="0 6.28" kp="5.0" />
+            <position joint="joint2" ctrlrange="0 6.28" kp="5.0" /> -->
+            <motor joint="joint1" ctrlrange="-50 50" />
+            <motor joint="joint2" ctrlrange="-50 50" />
+            <motor joint="wrist" ctrlrange="-5 5" />
+ 
+        </actuator>
+    </mujoco>
